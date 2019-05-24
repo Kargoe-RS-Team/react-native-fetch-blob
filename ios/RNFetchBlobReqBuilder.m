@@ -102,7 +102,7 @@
         // if method is POST, PUT or PATCH, convert data string format
         if([[method lowercaseString] isEqualToString:@"post"] || [[method lowercaseString] isEqualToString:@"put"] || [[method lowercaseString] isEqualToString:@"patch"]) {
             // generate octet-stream body
-            if(body != nil) {
+            if(body != nil && [body isKindOfClass:[NSString class]]) {
                 __block NSString * cType = [[self class] getHeaderIgnoreCases:@"content-type" fromHeaders:mheaders];
                 __block NSString * transferEncoding = [[self class] getHeaderIgnoreCases:@"transfer-encoding" fromHeaders:mheaders];
                 // when headers does not contain a key named "content-type" (case ignored), use default content type
@@ -115,7 +115,7 @@
                 if([body hasPrefix:FILE_PREFIX]) {
                     __block NSString * orgPath = [body substringFromIndex:[FILE_PREFIX length]];
                     orgPath = [RNFetchBlobFS getPathOfAsset:orgPath];
-                    if([orgPath hasPrefix:AL_PREFIX])
+                    if([orgPath isKindOfClass:[NSString class]] && [orgPath hasPrefix:AL_PREFIX])
                     {
                         
                         [RNFetchBlobFS readFile:orgPath encoding:nil onComplete:^(NSData *content, NSString * err) {
@@ -150,7 +150,9 @@
 
                     __block NSString * cType = [[self class]getHeaderIgnoreCases:@"content-type" fromHeaders:mheaders];
                     // when content-type is application/octet* decode body string using BASE64 decoder
-                    if([[cType lowercaseString] hasPrefix:@"application/octet"] || [[cType lowercaseString] RNFBContainsString:@";base64"])
+                    BOOL ctypeIsString = [ctype isKindOfClass:[NSString class]];
+                  
+                    if(ctypeIsString && ([[cType lowercaseString] hasPrefix:@"application/octet"] || [[cType lowercaseString] RNFBContainsString:@";base64"]))
                     {
                         __block NSString * ncType = [[cType stringByReplacingOccurrencesOfString:@";base64" withString:@""]stringByReplacingOccurrencesOfString:@";BASE64" withString:@""];
                         if([mheaders valueForKey:@"content-type"] != nil)
